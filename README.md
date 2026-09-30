@@ -13,6 +13,7 @@
 
 **POLAR SYNC**
 Indian Antarctic Research Stations
+**Live Demo:** https://polarsync-dashboard.vercel.app/
 
 ---
 
@@ -26,13 +27,13 @@ Indian Antarctic Research Stations
 
 Antarctica is one of the most hostile engineering environments on Earth:
 
-| Real-World Problem | Engineering Consequence |
-|---|---|
-| **Geomagnetic storms** cause satellite blackout | Station loses all remote contact with the outside world |
-| Temperatures below **-50 degrees C** | Generators, heating, and fuel become life-critical — no reading can be missed |
-| **No cloud connectivity** during outages | Cloud-first systems lose all buffered data permanently |
-| Limited satellite bandwidth during storms | Cannot send all data — must triage and prioritize critical records |
-| **Two separate stations** (Maitri + Bharati) | Operator needs a unified, multi-station command panel |
+| Real-World Problem                              | Engineering Consequence                                                       |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Geomagnetic storms** cause satellite blackout | Station loses all remote contact with the outside world                       |
+| Temperatures below **-50 degrees C**            | Generators, heating, and fuel become life-critical — no reading can be missed |
+| **No cloud connectivity** during outages        | Cloud-first systems lose all buffered data permanently                        |
+| Limited satellite bandwidth during storms       | Cannot send all data — must triage and prioritize critical records            |
+| **Two separate stations** (Maitri + Bharati)    | Operator needs a unified, multi-station command panel                         |
 
 PolarSync solves all five by processing and storing everything **locally on-station first**, then syncing to the outside world only when connectivity allows — with life-safety alerts (P1) always transmitted first.
 
@@ -80,8 +81,6 @@ PolarSync is a **full-stack live simulation + management dashboard** that:
 +--------------------------------------------------------------------------------------------------+
 ```
 
-> **Live Demo:** https://polarsync-dashboard.vercel.app/
-
 ---
 
 ## How Does It Work?
@@ -115,11 +114,11 @@ Step 5 -- REACT DASHBOARD (Port 3000)
 
 ### Sync Modes
 
-| Network Mode | Batch Size | Priorities Synced | Trigger |
-|---|---|---|---|
-| `ONLINE` | 20 records/cycle | P1 + P2 + P3 | Normal satellite link |
-| `DEGRADED` | 5 records/cycle | P1 + P2 only | Geomagnetic storm |
-| `OFFLINE` | None — buffer grows | — | Total blackout |
+| Network Mode | Batch Size          | Priorities Synced | Trigger               |
+| ------------ | ------------------- | ----------------- | --------------------- |
+| `ONLINE`     | 20 records/cycle    | P1 + P2 + P3      | Normal satellite link |
+| `DEGRADED`   | 5 records/cycle     | P1 + P2 only      | Geomagnetic storm     |
+| `OFFLINE`    | None — buffer grows | —                 | Total blackout        |
 
 ---
 
@@ -186,23 +185,23 @@ Step 5 -- REACT DASHBOARD (Port 3000)
 
 ## Main Features
 
-| # | Feature | Description |
-|---|---|---|
-| 1 | **Dual-Station Support** | Instant switch between Maitri (Schirmacher Oasis) and Bharati (Larsemann Hills) |
-| 2 | **2D Interactive Floor Map** | Clickable rooms with live status indicators (green/amber/red) |
-| 3 | **3D Digital Twin** | Three.js model in an iframe, synced via postMessage |
-| 4 | **3D Overlay Filters** | Labels, Subsystems, Blizzard, Cinematic FX, Photo View |
-| 5 | **Edge-First / Offline Sovereignty** | 100% local processing — no cloud dependency |
-| 6 | **Priority Queue Sync** | P1 to P2 to P3 ordering; SYNC status row with live count |
-| 7 | **Crash-Safe SQLite WAL** | PRAGMA journal_mode=WAL — zero data loss on power cuts |
-| 8 | **Bandwidth-Adaptive Sync** | Drops P3 automatically in DEGRADED (storm) mode |
-| 9 | **Mini Metric Sparkline Cards** | Energy, Battery SOC, Cooking Fuel, Gen Health with trend arrows |
-| 10 | **AI Anomaly Diagnosis** | Ollama / DeepSeek-R1 local LLM, async jobs, no internet |
-| 11 | **Real Historical Weather** | Maitri 2016 hourly + Bharati 2026 minute-sampled real AWS datasets |
-| 12 | **Logistics Tracking** | Food / Fuel / Medicine days-remaining predictions |
-| 13 | **Detail Cards Row** | Energy & Power, Environment, Infrastructure, Logistics expandable cards |
-| 14 | **Full Alert History Modal** | Searchable table with AI Analyze per event and stats bar |
-| 15 | **PDF Report Generator** | generate_report_pdf.py produces an executive technical report |
+| #   | Feature                              | Description                                                                     |
+| --- | ------------------------------------ | ------------------------------------------------------------------------------- |
+| 1   | **Dual-Station Support**             | Instant switch between Maitri (Schirmacher Oasis) and Bharati (Larsemann Hills) |
+| 2   | **2D Interactive Floor Map**         | Clickable rooms with live status indicators (green/amber/red)                   |
+| 3   | **3D Digital Twin**                  | Three.js model in an iframe, synced via postMessage                             |
+| 4   | **3D Overlay Filters**               | Labels, Subsystems, Blizzard, Cinematic FX, Photo View                          |
+| 5   | **Edge-First / Offline Sovereignty** | 100% local processing — no cloud dependency                                     |
+| 6   | **Priority Queue Sync**              | P1 to P2 to P3 ordering; SYNC status row with live count                        |
+| 7   | **Crash-Safe SQLite WAL**            | PRAGMA journal_mode=WAL — zero data loss on power cuts                          |
+| 8   | **Bandwidth-Adaptive Sync**          | Drops P3 automatically in DEGRADED (storm) mode                                 |
+| 9   | **Mini Metric Sparkline Cards**      | Energy, Battery SOC, Cooking Fuel, Gen Health with trend arrows                 |
+| 10  | **AI Anomaly Diagnosis**             | Ollama / DeepSeek-R1 local LLM, async jobs, no internet                         |
+| 11  | **Real Historical Weather**          | Maitri 2016 hourly + Bharati 2026 minute-sampled real AWS datasets              |
+| 12  | **Logistics Tracking**               | Food / Fuel / Medicine days-remaining predictions                               |
+| 13  | **Detail Cards Row**                 | Energy & Power, Environment, Infrastructure, Logistics expandable cards         |
+| 14  | **Full Alert History Modal**         | Searchable table with AI Analyze per event and stats bar                        |
+| 15  | **PDF Report Generator**             | generate_report_pdf.py produces an executive technical report                   |
 
 ---
 
@@ -210,39 +209,40 @@ Step 5 -- REACT DASHBOARD (Port 3000)
 
 ### Backend — Python 3.13
 
-| Library | Version | Role |
-|---|---|---|
-| Flask | 3.1+ | REST API server |
-| Flask-CORS | 6.0+ | Cross-origin requests |
-| Flasgger | 0.9.7+ | Swagger UI at /apidocs |
-| SQLite (built-in) | WAL mode | Crash-safe edge buffer |
-| NumPy | 2.0+ | Simulation physics and seeded RNG |
-| Ollama | 0.4+ | Local LLM client (DeepSeek-R1) |
-| Requests | 2.32+ | HTTP utilities |
+| Library           | Version  | Role                              |
+| ----------------- | -------- | --------------------------------- |
+| Flask             | 3.1+     | REST API server                   |
+| Flask-CORS        | 6.0+     | Cross-origin requests             |
+| Flasgger          | 0.9.7+   | Swagger UI at /apidocs            |
+| SQLite (built-in) | WAL mode | Crash-safe edge buffer            |
+| NumPy             | 2.0+     | Simulation physics and seeded RNG |
+| Ollama            | 0.4+     | Local LLM client (DeepSeek-R1)    |
+| Requests          | 2.32+    | HTTP utilities                    |
 
 ### Frontend — React / Vite
 
-| Library | Role |
-|---|---|
-| React 18 | Component framework |
-| Vite 6 | Build tool and dev server (Port 3000) |
-| Vanilla CSS | Glassmorphic dark industrial design system |
-| Chart.js | Power generation and diagnostics line charts |
-| Three.js / R3F | 3D station model (served via iframe) |
-| Inter + JetBrains Mono | Typography (Google Fonts) |
+| Library                | Role                                         |
+| ---------------------- | -------------------------------------------- |
+| React 18               | Component framework                          |
+| Vite 6                 | Build tool and dev server (Port 3000)        |
+| Vanilla CSS            | Glassmorphic dark industrial design system   |
+| Chart.js               | Power generation and diagnostics line charts |
+| Three.js / R3F         | 3D station model (served via iframe)         |
+| Inter + JetBrains Mono | Typography (Google Fonts)                    |
 
 ### Data
 
-| File | Size | Description |
-|---|---|---|
-| data/maitri_weather_2016.json | 16 MB | Maitri AWS hourly historical dataset |
-| data/bharati_weather_2026.json | 1.3 MB | Bharati AWS minute-sampled dataset |
+| File                           | Size   | Description                          |
+| ------------------------------ | ------ | ------------------------------------ |
+| data/maitri_weather_2016.json  | 16 MB  | Maitri AWS hourly historical dataset |
+| data/bharati_weather_2026.json | 1.3 MB | Bharati AWS minute-sampled dataset   |
 
 ---
 
 ## How to Run It
 
 ### Prerequisites
+
 - Python 3.13+
 - Node.js 18+
 - Optional for AI: [Ollama](https://ollama.com) installed locally
@@ -349,36 +349,30 @@ Polar-Sync-Final-3D-model-integrated/
 
 ## API Endpoint Reference
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | /api/health | Backend service health check |
-| GET | /api/data?station=MAITRI | Latest telemetry snapshot for station |
-| GET | /api/telemetry/history?station=MAITRI | Last 30 data points for charts |
-| GET | /api/anomaly-events?station=MAITRI | Recent simulated anomaly events |
-| GET | /api/edge/status | Network mode, sync state, buffer health |
-| GET | /api/edge/queue | P1 / P2 / P3 pending record counts |
-| GET | /api/edge/history?limit=20 | Recent SQLite transmission log |
-| POST | /api/alerts/analyze | Start async AI analysis job (Ollama) |
-| GET | /api/alerts/analyze/<job_id> | Poll AI analysis job result |
+| Method | Endpoint                              | Description                             |
+| ------ | ------------------------------------- | --------------------------------------- |
+| GET    | /api/health                           | Backend service health check            |
+| GET    | /api/data?station=MAITRI              | Latest telemetry snapshot for station   |
+| GET    | /api/telemetry/history?station=MAITRI | Last 30 data points for charts          |
+| GET    | /api/anomaly-events?station=MAITRI    | Recent simulated anomaly events         |
+| GET    | /api/edge/status                      | Network mode, sync state, buffer health |
+| GET    | /api/edge/queue                       | P1 / P2 / P3 pending record counts      |
+| GET    | /api/edge/history?limit=20            | Recent SQLite transmission log          |
+| POST   | /api/alerts/analyze                   | Start async AI analysis job (Ollama)    |
+| GET    | /api/alerts/analyze/<job_id>          | Poll AI analysis job result             |
 
 ---
 
 ## Demo / Documentation / Links
 
-| Resource | Link |
-|---|---|
-| Live Demo | https://polarsync-dashboard.vercel.app/ |
-| GitHub Repository | https://github.com/shahidsayyad1011/Polar-Sync-Final-3D-model-integrated |
-| Backend API (runtime) | http://localhost:5000/apidocs (Swagger UI) |
-| Dashboard (runtime) | http://localhost:3000 |
-| Modification Log | modification.md |
+| Resource              | Link                                                                     |
+| --------------------- | ------------------------------------------------------------------------ |
+| Live Demo             | https://polarsync-dashboard.vercel.app/                                  |
+| GitHub Repository     | https://github.com/shahidsayyad1011/Polar-Sync-Final-3D-model-integrated |
+| Backend API (runtime) | http://localhost:5000/apidocs (Swagger UI)                               |
+| Dashboard (runtime)   | http://localhost:3000                                                    |
+| Modification Log      | modification.md                                                          |
 
 ---
 
-## Contributors / License
-
 **Built for:** Antarctic Station Management and Resilient Remote Systems Engineering — India's polar research infrastructure.
-
-**Repository maintainer:** shahidsayyad1011 (https://github.com/shahidsayyad1011)
-
-**License:** Not explicitly specified in the repository.
