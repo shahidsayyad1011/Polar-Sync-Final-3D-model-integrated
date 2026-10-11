@@ -1,34 +1,77 @@
 import React from 'react';
 
-export default function WeatherSummary({ current, stats }) {
+// Label shown next to the title so "Min / Max / Average" are never ambiguous
+const RANGE_LABELS = {
+  '24H': 'Last 24 hours',
+  '7D': 'Last 7 days',
+  '30D': 'Last 30 days',
+  All: 'All available data',
+};
+
+// Number -> fixed string, or 'N/A' when the value is missing
+function show(value, digits) {
+  const n = Number(value);
+  return value == null || Number.isNaN(n) ? 'N/A' : n.toFixed(digits);
+}
+
+function Row({ label, value, unit, digits = 1, current = false }) {
+  const text = show(value, digits);
+  return (
+    <div className={`ps-weather-summary__row${current ? ' is-current' : ''}`}>
+      <span className="ps-weather-summary__label">{label}</span>
+      <span className="ps-weather-summary__value">
+        {text}
+        {text !== 'N/A' && <span className="ps-weather-summary__unit">{unit}</span>}
+      </span>
+    </div>
+  );
+}
+
+function Group({ tone, icon, title, children }) {
+  return (
+    <div className={`ps-weather-summary__col ${tone}`}>
+      <div className="ps-weather-summary__header">
+        <span className="ps-weather-summary__icon">{icon}</span>
+        <span>{title}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export default function WeatherSummary({ current, stats, range = '24H' }) {
   if (!stats) return null;
+  const cur = current || {};
 
   return (
     <div className="ps-weather-summary">
-      <div className="ps-section-title">WEATHER SUMMARY</div>
+      <div className="ps-weather-summary__top">
+        <div className="ps-section-title">WEATHER SUMMARY</div>
+        <span className="ps-weather-summary__period">{RANGE_LABELS[range] || range}</span>
+      </div>
+
       <div className="ps-weather-summary__grid">
-        <div className="ps-weather-summary__col">
-          <div className="ps-weather-summary__header">Temperature</div>
-          <div className="ps-weather-summary__row"><span>Current</span> <span>{current.temperature?.toFixed(1) ?? 'N/A'} °C</span></div>
-          <div className="ps-weather-summary__row"><span>Min</span> <span>{stats.tempMin?.toFixed(1) ?? 'N/A'} °C</span></div>
-          <div className="ps-weather-summary__row"><span>Max</span> <span>{stats.tempMax?.toFixed(1) ?? 'N/A'} °C</span></div>
-          <div className="ps-weather-summary__row"><span>Average</span> <span>{stats.tempAvg?.toFixed(1) ?? 'N/A'} °C</span></div>
-        </div>
-        <div className="ps-weather-summary__col">
-          <div className="ps-weather-summary__header">Wind</div>
-          <div className="ps-weather-summary__row"><span>Current</span> <span>{current.windSpeed?.toFixed(1) ?? 'N/A'} km/h</span></div>
-          <div className="ps-weather-summary__row"><span>Maximum</span> <span>{stats.windMax?.toFixed(1) ?? 'N/A'} km/h</span></div>
-        </div>
-        <div className="ps-weather-summary__col">
-          <div className="ps-weather-summary__header">Pressure</div>
-          <div className="ps-weather-summary__row"><span>Current</span> <span>{current.pressure?.toFixed(1) ?? 'N/A'} hPa</span></div>
-          <div className="ps-weather-summary__row"><span>Average</span> <span>{stats.pressureAvg?.toFixed(1) ?? 'N/A'} hPa</span></div>
-        </div>
-        <div className="ps-weather-summary__col">
-          <div className="ps-weather-summary__header">Humidity</div>
-          <div className="ps-weather-summary__row"><span>Current</span> <span>{current.humidity?.toFixed(0) ?? 'N/A'} %</span></div>
-          <div className="ps-weather-summary__row"><span>Average</span> <span>{stats.humidityAvg?.toFixed(0) ?? 'N/A'} %</span></div>
-        </div>
+        <Group tone="temp" icon="🌡️" title="Temperature">
+          <Row current label="Current" value={cur.temperature} unit="°C" />
+          <Row label="Minimum" value={stats.tempMin} unit="°C" />
+          <Row label="Maximum" value={stats.tempMax} unit="°C" />
+          <Row label="Average" value={stats.tempAvg} unit="°C" />
+        </Group>
+
+        <Group tone="wind" icon="💨" title="Wind">
+          <Row current label="Current" value={cur.windSpeed} unit="km/h" />
+          <Row label="Maximum" value={stats.windMax} unit="km/h" />
+        </Group>
+
+        <Group tone="pressure" icon="⏲️" title="Pressure">
+          <Row current label="Current" value={cur.pressure} unit="hPa" />
+          <Row label="Average" value={stats.pressureAvg} unit="hPa" />
+        </Group>
+
+        <Group tone="humidity" icon="💧" title="Humidity">
+          <Row current label="Current" value={cur.humidity} unit="%" digits={0} />
+          <Row label="Average" value={stats.humidityAvg} unit="%" digits={0} />
+        </Group>
       </div>
     </div>
   );

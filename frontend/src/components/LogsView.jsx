@@ -1,192 +1,138 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 
-const LEVEL_META = {
-  info:     { icon: '●', label: 'INFO',     color: 'var(--accent-blue)' },
-  warning:  { icon: '▲', label: 'WARN',     color: 'var(--status-warning)' },
-  critical: { icon: '■', label: 'CRITICAL', color: 'var(--status-critical)' },
-};
-
-function levelMeta(level) {
-  return LEVEL_META[level] || LEVEL_META.info;
-}
-
-/* ── Compact log row (bottom bar) ──────────────────────── */
-function LogRow({ entry, onClick }) {
-  const meta = levelMeta(entry.level);
-  return (
-    <div
-      className={`ps-log-entry log-entry-compact log-level-${entry.level}`}
-      onClick={onClick}
-      title="Click to view full log"
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onClick()}
-    >
-      <span className="log-time">{entry.time}</span>
-      <span className="log-badge" style={{ color: meta.color }}>
-        {meta.icon} {meta.label}
-      </span>
-      <span className="log-sub">{entry.subsystem}</span>
-      <span className="log-msg">{entry.message}</span>
-    </div>
-  );
-}
-
-/* ── Modal log row (popup, expanded) ───────────────────── */
-function ModalLogRow({ entry, index }) {
-  const meta = levelMeta(entry.level);
-  return (
-    <div className={`modal-log-row modal-log-${entry.level}`}>
-      <span className="modal-log-index">#{index + 1}</span>
-      <span className="modal-log-time">{entry.time}</span>
-      <span className="modal-log-badge" style={{ color: meta.color }}>
-        {meta.icon} {meta.label}
-      </span>
-      <span className="modal-log-sub">[{entry.subsystem}]</span>
-      <span className="modal-log-msg">{entry.message}</span>
-    </div>
-  );
-}
-
-/* ── Log Modal ──────────────────────────────────────────── */
-function LogModal({ logs, onClose }) {
-  const bottomRef = useRef(null);
+export default function LogsView({ logs = [] }) {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logs.length]);
-
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  const filtered = logs.filter((e) => {
-    if (filter !== 'all' && e.level !== filter) return false;
-    if (search && !e.message?.toLowerCase().includes(search.toLowerCase())
-      && !e.subsystem?.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const filteredLogs = useMemo(() => {
+    return logs.filter((e) => {
+      const level = (e.level || 'info').toLowerCase();
+      if (filter !== 'all' && level !== filter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        const msg = (e.message || '').toLowerCase();
+        const sub = (e.subsystem || '').toLowerCase();
+        if (!msg.includes(q) && !sub.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [logs, filter, search]);
 
   const counts = {
-    all:      logs.length,
-    info:     logs.filter((e) => e.level === 'info').length,
-    warning:  logs.filter((e) => e.level === 'warning').length,
-    critical: logs.filter((e) => e.level === 'critical').length,
+    all: logs.length,
+    info: logs.filter((e) => (e.level || 'info').toLowerCase() === 'info').length,
+    warning: logs.filter((e) => (e.level || '').toLowerCase() === 'warning').length,
+    critical: logs.filter((e) => (e.level || '').toLowerCase() === 'critical').length,
   };
 
   return (
-    <div className="log-modal-backdrop" onClick={onClose}>
-      <div className="log-modal" onClick={(e) => e.stopPropagation()}>
-
-        {/* Header */}
-        <div className="log-modal-header">
-          <div className="log-modal-title">
-            <span className="log-modal-icon">📋</span>
-            <span>STATION EVENT LOG</span>
-            <span className="log-modal-count">{logs.length} events</span>
-          </div>
-          <button className="log-modal-close" onClick={onClose} title="Close (Esc)">✕</button>
-        </div>
-
-        {/* Toolbar */}
-        <div className="log-modal-toolbar">
-          {/* Level filters */}
-          <div className="log-filter-tabs">
-            {[
-              { key: 'all',      label: 'All',      color: 'var(--text-secondary)' },
-              { key: 'info',     label: 'INFO',     color: 'var(--accent-blue)' },
-              { key: 'warning',  label: 'WARN',     color: 'var(--status-warning)' },
-              { key: 'critical', label: 'CRITICAL', color: 'var(--status-critical)' },
-            ].map((f) => (
-              <button
-                key={f.key}
-                className={`log-filter-btn ${filter === f.key ? 'active' : ''}`}
-                style={{ '--f-color': f.color }}
-                onClick={() => setFilter(f.key)}
-              >
-                {f.label}
-                <span className="log-filter-count">{counts[f.key]}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Search */}
+    <div className="ps-full-logs-container">
+      {/* Search & Filter Toolbar */}
+      <div className="ps-logs-toolbar">
+        <div className="ps-logs-search-wrap">
+          <span className="ps-search-icon">🔍</span>
           <input
-            className="log-search"
             type="text"
-            placeholder="Search messages or subsystems…"
+            className="ps-logs-search-input"
+            placeholder="Search telemetry, subsystems, or messages..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            autoFocus
           />
-        </div>
-
-        {/* Log body */}
-        <div className="log-modal-body">
-          {filtered.length === 0 ? (
-            <div className="log-modal-empty">No matching log entries</div>
-          ) : (
-            filtered.map((entry, i) => (
-              <ModalLogRow key={i} entry={entry} index={i} />
-            ))
+          {search && (
+            <button
+              type="button"
+              className="ps-search-clear-btn"
+              onClick={() => setSearch('')}
+            >
+              ✕
+            </button>
           )}
-          <div ref={bottomRef} />
         </div>
 
-        {/* Footer */}
-        <div className="log-modal-footer">
-          <span>Showing {filtered.length} of {logs.length} entries</span>
-          <span>Press <kbd>Esc</kbd> or click outside to close</span>
+        <div className="ps-logs-filter-group">
+          <button
+            type="button"
+            className={`ps-log-filter-btn ${filter === 'all' ? 'active' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            <span>ALL</span>
+            <span className="ps-filter-count">{counts.all}</span>
+          </button>
+          <button
+            type="button"
+            className={`ps-log-filter-btn info ${filter === 'info' ? 'active' : ''}`}
+            onClick={() => setFilter('info')}
+          >
+            <span>INFO</span>
+            <span className="ps-filter-count">{counts.info}</span>
+          </button>
+          <button
+            type="button"
+            className={`ps-log-filter-btn warning ${filter === 'warning' ? 'active' : ''}`}
+            onClick={() => setFilter('warning')}
+          >
+            <span>WARN</span>
+            <span className="ps-filter-count">{counts.warning}</span>
+          </button>
+          <button
+            type="button"
+            className={`ps-log-filter-btn critical ${filter === 'critical' ? 'active' : ''}`}
+            onClick={() => setFilter('critical')}
+          >
+            <span>CRIT</span>
+            <span className="ps-filter-count">{counts.critical}</span>
+          </button>
         </div>
+      </div>
+
+      {/* Structured Log Table */}
+      <div className="ps-logs-table-wrap">
+        <table className="ps-logs-table">
+          <thead>
+            <tr>
+              <th style={{ width: '45px' }}>#</th>
+              <th style={{ width: '85px' }}>TIME</th>
+              <th style={{ width: '75px' }}>SEVERITY</th>
+              <th style={{ width: '80px' }}>SUBSYSTEM</th>
+              <th>TELEMETRY EVENT & MESSAGE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredLogs.length > 0 ? (
+              filteredLogs.map((entry, idx) => {
+                const level = (entry.level || 'info').toLowerCase();
+                return (
+                  <tr key={idx} className={`ps-log-table-row level-${level}`}>
+                    <td className="mono ps-col-idx">{idx + 1}</td>
+                    <td className="mono ps-col-time">{entry.time || '--:--:--'}</td>
+                    <td>
+                      <span className={`ps-stream-badge ${level}`}>
+                        {level.toUpperCase()}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="ps-stream-subsys">{entry.subsystem || 'CORE'}</span>
+                    </td>
+                    <td className="ps-col-msg">{entry.message}</td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan="5" className="ps-logs-empty-row">
+                  No telemetry events match the selected criteria.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Footer Info */}
+      <div className="ps-logs-footer-info">
+        <span>Showing {filteredLogs.length} of {logs.length} logged events</span>
+        <span>Telemetry polling active (2s interval)</span>
       </div>
     </div>
-  );
-}
-
-/* ── Main Export ────────────────────────────────────────── */
-export default function LogsView({ logs }) {
-  const containerRef = useRef(null);
-  const [modalOpen, setModalOpen] = useState(false);
-
-  // Auto-scroll compact view
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, [logs]);
-
-  const openModal  = useCallback(() => setModalOpen(true),  []);
-  const closeModal = useCallback(() => setModalOpen(false), []);
-
-  const isEmpty = !logs || logs.length === 0;
-
-  return (
-    <>
-      {/* Compact bar — click header or any row to open modal */}
-      <div className="ps-logs" ref={containerRef}>
-        {isEmpty ? (
-          <div className="log-waiting">Waiting for telemetry stream…</div>
-        ) : (
-          logs.map((entry, i) => (
-            <LogRow key={i} entry={entry} onClick={openModal} />
-          ))
-        )}
-      </div>
-
-      {/* "Open full log" hint at bottom */}
-      {!isEmpty && (
-        <button className="log-expand-btn" onClick={openModal} title="View full event log">
-          <span>📋</span> VIEW FULL LOG ({logs.length})
-        </button>
-      )}
-
-      {/* Full-screen modal */}
-      {modalOpen && <LogModal logs={logs} onClose={closeModal} />}
-    </>
   );
 }

@@ -1,18 +1,20 @@
 import React, { useEffect } from 'react';
 import { STATION_ROOMS, TELEMETRY_LABELS } from '../data/stationRooms';
 
-function TelField({ field, value }) {
+function TelTile({ field, value }) {
   const meta = TELEMETRY_LABELS[field] || { label: field, unit: '' };
 
   if (meta.isBool) {
-    const isOn = value === 1;
+    const isOn = value === 1 || value === true;
     return (
-      <div className="ps-telem-row">
-        <span className="ps-telem-label">{meta.label}</span>
-        <span className={`ps-pump-badge ${isOn ? 'operational' : 'fault'}`}>
-          <span className="ps-status-dot" />
-          {isOn ? 'Operational' : 'FAULT'}
-        </span>
+      <div className="ps-inspector-tile">
+        <span className="ps-inspector-key">{meta.label}</span>
+        <div className="ps-inspector-val-row">
+          <span className={`ps-badge-pill ${isOn ? 'green' : 'red'}`}>
+            <span className="ps-synced-dot" />
+            {isOn ? 'Operational' : 'FAULT / OFFLINE'}
+          </span>
+        </div>
       </div>
     );
   }
@@ -21,24 +23,24 @@ function TelField({ field, value }) {
     value !== undefined && value !== null
       ? typeof value === 'number'
         ? value.toFixed(meta.precision ?? 2)
-        : value
+        : String(value)
       : '--';
 
   const pct =
-    meta.max && value !== undefined ? Math.min(100, Math.max(0, (value / meta.max) * 100)) : 0;
+    meta.max && typeof value === 'number'
+      ? Math.min(100, Math.max(0, (value / meta.max) * 100))
+      : null;
 
   return (
-    <div>
-      <div className="ps-telem-row">
-        <span className="ps-telem-label">{meta.label}</span>
-        <span>
-          <span className="ps-telem-value">{display}</span>
-          {meta.unit && <span className="ps-telem-unit">{meta.unit}</span>}
-        </span>
+    <div className="ps-inspector-tile">
+      <span className="ps-inspector-key">{meta.label}</span>
+      <div className="ps-inspector-val-row">
+        <strong className="ps-inspector-number">{display}</strong>
+        {meta.unit && <span className="ps-inspector-unit">{meta.unit}</span>}
       </div>
-      {meta.max && (
-        <div className="ps-telem-bar">
-          <div className="ps-telem-bar-fill" style={{ width: `${pct}%` }} />
+      {pct !== null && (
+        <div className="ps-inspector-bar-track">
+          <div className="ps-inspector-bar-fill" style={{ width: `${pct}%` }} />
         </div>
       )}
     </div>
@@ -60,56 +62,55 @@ export default function RoomInfoPanel({ selectedRoomId, stationData, onClose }) 
 
   if (!room) return null;
 
-  const status = room.statusLogic(stationData);
+  const status = stationData ? room.statusLogic(stationData) : 'normal';
 
   return (
-    <div className="ps-ai-modal-backdrop" onClick={onClose}>
-      <div className="ps-room-modal" onClick={e => e.stopPropagation()}>
+    <div className="ps-modal-overlay" onClick={onClose}>
+      <div className="ps-modal-window ps-inspector-window" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="ps-ai-modal-header">
-          <div className="ps-ai-modal-title">
-            <span style={{ fontSize: '18px' }}>{room.icon}</span>
-            {room.name.toUpperCase()}
-          </div>
-          <button className="ps-ai-modal-close" onClick={onClose}>×</button>
-        </div>
-
-        {/* Body */}
-        <div className="ps-ai-modal-body">
-          {/* Room info card */}
-          <div style={{
-            padding: '10px 12px',
-            background: 'var(--bg-card)',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border)',
-            marginBottom: '14px',
-            borderLeft: status === 'critical' ? '3px solid var(--status-critical)' : status === 'warning' ? '3px solid var(--status-warning)' : '3px solid var(--status-normal)'
-          }}>
-            <div className="ps-room-panel__desc" style={{ fontSize: '11px', marginBottom: '8px', color: 'var(--text-secondary)' }}>
-              {room.description}
-            </div>
-            <span className={`ps-status-badge ${status}`}>
-              <span className="ps-status-dot" />
+        <div className="ps-modal-header">
+          <div className="ps-modal-title">
+            <span className="ps-modal-icon" style={{ fontSize: '18px' }}>{room.icon}</span>
+            <span>{room.name.toUpperCase()}</span>
+            <span className={`ps-badge-pill ${status === 'critical' ? 'red' : status === 'warning' ? 'orange' : 'green'}`} style={{ marginLeft: '8px' }}>
               {status === 'normal' ? 'OPERATIONAL' : status.toUpperCase()}
             </span>
           </div>
+          <button type="button" className="ps-modal-close-btn" onClick={onClose} title="Close (ESC)">
+            ✕
+          </button>
+        </div>
 
-          {/* Telemetry Fields */}
-          {stationData ? (
-            room.telemetryFields.map((field) => (
-              <TelField key={field} field={field} value={stationData[field]} />
-            ))
-          ) : (
-            <div style={{ padding: '8px 0', color: 'var(--text-muted)', fontSize: 11 }}>
-              Waiting for telemetry…
-            </div>
-          )}
+        {/* Body */}
+        <div className="ps-modal-body">
+          {/* Room description summary banner */}
+          <div className="ps-inspector-banner">
+            <div className="ps-inspector-desc">{room.description}</div>
+            <div className="ps-inspector-category-tag">Category: <strong>{room.category?.toUpperCase() || 'CORE FACILITY'}</strong></div>
+          </div>
+
+          {/* Subsystem Telemetry Grid */}
+          <div className="ps-inspector-grid">
+            {stationData ? (
+              room.telemetryFields && room.telemetryFields.length > 0 ? (
+                room.telemetryFields.map((field) => (
+                  <TelTile key={field} field={field} value={stationData[field]} />
+                ))
+              ) : (
+                <div className="ps-inspector-empty">No telemetry channels configured for this zone.</div>
+              )
+            ) : (
+              <div className="ps-inspector-empty">Connecting to station telemetry stream...</div>
+            )}
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="ps-ai-modal-footer">
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Press <kbd>ESC</kbd> to close</span>
-          <button className="ps-ai-modal-btn-close" onClick={onClose}>CLOSE</button>
+        <div className="ps-modal-footer">
+          <span className="ps-footer-tip">Press <kbd>ESC</kbd> or click outside to dismiss</span>
+          <button type="button" className="ps-modal-btn-primary" onClick={onClose}>
+            Close Inspector
+          </button>
         </div>
       </div>
     </div>

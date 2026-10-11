@@ -45,16 +45,16 @@ html, body {
 /* ==================== TOP NAVIGATION ==================== */
 .top-nav {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 44px;
-  background: linear-gradient(180deg, rgba(7, 12, 20, 0.94) 0%, rgba(7, 12, 20, 0.55) 80%, transparent 100%);
-  border-bottom: 1px solid rgba(64, 114, 179, 0.18);
+  top: 8px;
+  right: 8px;
+  width: auto;
+  height: auto;
+  background: transparent;
+  border-bottom: none;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 0 12px;
+  padding: 0;
   z-index: 20;
   pointer-events: none;
 }
@@ -70,9 +70,7 @@ html, body {
   left: 8px;
   display: flex;
   align-items: center;
-  background: rgba(10, 16, 26, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(10, 16, 26, 0.95);
   border: 1px solid rgba(0, 212, 255, 0.4);
   border-radius: 20px;
   padding: 2px;
@@ -130,7 +128,6 @@ html, body {
 
 .action-btn {
   background: var(--panel-bg);
-  backdrop-filter: blur(8px);
   border: 1px solid var(--panel-border);
   color: var(--text-primary);
   padding: 4px 9px;
@@ -190,8 +187,7 @@ html, body {
 }
 
 .marker-box {
-  background: rgba(10, 16, 26, 0.88);
-  backdrop-filter: blur(8px);
+  background: rgba(10, 16, 26, 0.92);
   border: 1px solid rgba(0, 212, 255, 0.5);
   border-radius: 3px;
   padding: 2.5px 6px;
@@ -254,9 +250,7 @@ html, body {
   right: 24px;
   width: 360px;
   max-height: calc(100vh - 140px);
-  background: rgba(9, 16, 28, 0.88);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(9, 16, 28, 0.96);
   border: 1px solid rgba(0, 212, 255, 0.32);
   border-radius: 12px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 212, 255, 0.15);
@@ -542,3 +536,19 @@ input[type="range"]::-webkit-slider-thumb:hover {
   font-size: 0.88rem;
 }
 
+/* ── V4: larger, easier-to-click 3D toolbar buttons ── */
+.top-nav .nav-right { gap: 8px; }
+.top-nav .action-btn {
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 7px;
+  gap: 6px;
+}
+.top-nav .action-btn svg { width: 15px; height: 15px; }
+
+/* narrow 3D window: icons only, so the two toolbars never overlap */
+@media (max-width: 900px) {
+  .top-nav .action-btn span { display: none; }
+  .top-nav .action-btn { padding: 8px 10px; }
+}

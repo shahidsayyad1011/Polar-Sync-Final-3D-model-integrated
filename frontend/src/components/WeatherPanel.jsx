@@ -79,7 +79,7 @@ export default React.memo(function WeatherPanel({ station = 'MAITRI' }) {
         </div>
       </div>
 
-      <WeatherSummary current={data.current} stats={data.stats} />
+      <WeatherSummary current={data.current} stats={data.stats} range={timeRange} />
     </div>
   );
 });

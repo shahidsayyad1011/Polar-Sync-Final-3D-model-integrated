@@ -43,7 +43,7 @@
       </button>
       <button id="btn-weather" class="action-btn" title="Cycle Weather / Environment">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <span id="env-text">Polar Day</span>
+        <span id="env-text">Twilight</span>
       </button>
       <button id="btn-cinematic" class="action-btn active" title="Toggle Cinematic FX">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -171,18 +171,18 @@
         <div class="cin-section-label">POLAR SOLAR ILLUMINATION</div>
         <div class="cin-slider-row">
           <span class="slider-label">Sun Elevation</span>
-          <input type="range" id="slider-sun-elevation" min="2" max="65" step="1" value="48">
-          <span class="slider-val" id="val-sun-elevation">48°</span>
+          <input type="range" id="slider-sun-elevation" min="2" max="65" step="1" value="6">
+          <span class="slider-val" id="val-sun-elevation">6°</span>
         </div>
 
         <div class="solar-presets-grid">
-          <button class="solar-preset-btn active" data-elevation="48">
+          <button class="solar-preset-btn" data-elevation="48">
             <span class="solar-icon">☀️</span> Midday
           </button>
           <button class="solar-preset-btn" data-elevation="18">
             <span class="solar-icon">🌅</span> Golden Hour
           </button>
-          <button class="solar-preset-btn" data-elevation="6">
+          <button class="solar-preset-btn active" data-elevation="6">
             <span class="solar-icon">🌆</span> Twilight
           </button>
           <button class="solar-preset-btn" data-elevation="2">
@@ -210,6 +210,6 @@
   <script src="js/environment.js?v=2.3"></script>
   <script src="js/maitri_model.js?v=2.3"></script>
   <script src="js/bharati_model.js?v=2.3"></script>
-  <script src="js/app.js?v=2.3"></script>
+  <script src="js/app.js?v=2.4"></script>
 </body>
 </html>

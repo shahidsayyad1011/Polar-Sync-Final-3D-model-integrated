@@ -17,7 +17,7 @@
   let isPostProcessingEnabled = true;
   let isTurntableActive = false;
   let turntableSpeed = 0.8;
-  let graphicsPreset = 'ultra'; // 'ultra' | 'balanced' | 'performance'
+  let graphicsPreset = 'balanced'; // 'ultra' | 'balanced' | 'performance'
 
   // State
   let currentStation = 'maitri'; // 'maitri' | 'bharati'
@@ -213,6 +213,19 @@
 
     // 5. Build Environment & Polar Terrain
     envData = PolarEnvironment.setupEnvironment(scene, renderer);
+    PolarEnvironment.setEnvironmentMode('twilight', scene);
+    const initialEnvText = document.getElementById('env-text');
+    if (initialEnvText) initialEnvText.textContent = 'Twilight';
+
+    // Default lighting follows the dashboard theme: dark = Polar Night, light = Twilight
+    applyThemeLighting(getDashboardTheme());
+    try {
+      // switching dark/light on the dashboard re-applies the matching lighting live
+      new MutationObserver(() => applyThemeLighting(getDashboardTheme())).observe(
+        window.parent.document.documentElement,
+        { attributes: true, attributeFilter: ['data-theme'] }
+      );
+    } catch (e) { /* not embedded / cross-origin: keep default */ }
 
     // 5b. High-End Post-Processing Pipeline
     initPostProcessing();
@@ -250,7 +263,10 @@
     pollTelemetry();
     setInterval(pollTelemetry, 2500);
 
-    // 10. Start Animation Loop
+    // 10. Start in the lighter 'balanced' preset
+    applyGraphicsPreset('balanced');
+
+    // 11. Start Animation Loop
     animate();
   }
 
@@ -866,7 +882,11 @@
 
   // Poll real-time telemetry from Python backend for active station
   function pollTelemetry() {
-    const apiBase = (window.location.port === '5000') ? '' : 'http://localhost:5000';
+    // Backend URL: passed in by the React app as ?api=..., else same-origin on :5000, else localhost
+    const apiParam = new URLSearchParams(window.location.search).get('api');
+    const apiBase = (apiParam && /^https?:\/\//.test(apiParam))
+      ? apiParam.replace(/\/+$/, '')
+      : (window.location.port === '5000') ? '' : 'http://localhost:5000';
     const stationQuery = currentStation.toUpperCase();
     fetch(`${apiBase}/api/data?station=${stationQuery}`)
       .then(res => {
@@ -892,6 +912,38 @@
     if (activeModuleId) {
       updatePanelContent(activeModuleId);
     }
+  }
+
+  // Read the dashboard theme ('dark' by default)
+  function getDashboardTheme() {
+    try {
+      if (window.parent && window.parent !== window) {
+        const t = window.parent.document.documentElement.getAttribute('data-theme');
+        return t === 'light' ? 'light' : 'dark';
+      }
+    } catch (e) { /* cross-origin: fall through */ }
+    return 'dark';
+  }
+
+  // Lighting preset that follows the dashboard theme
+  //   dark and light -> both use Twilight (sun elevation 6°)
+  function applyThemeLighting(theme) {
+    if (!scene) return;
+    const elevation = 6;
+
+    PolarEnvironment.setEnvironmentMode('twilight', scene);
+    PolarEnvironment.setSunElevation(elevation, scene);
+
+    const envText = document.getElementById('env-text');
+    if (envText) envText.textContent = 'Twilight';
+
+    const slider = document.getElementById('slider-sun-elevation');
+    const val = document.getElementById('val-sun-elevation');
+    if (slider) slider.value = elevation;
+    if (val) val.textContent = `${elevation}°`;
+    document.querySelectorAll('.solar-preset-btn').forEach((b) => {
+      b.classList.toggle('active', parseFloat(b.dataset.elevation) === elevation);
+    });
   }
 
   // Listen for parent messages when embedded in React dashboard
@@ -1257,6 +1309,7 @@
         bloomPass.strength = 0.75;
       }
       if (filmicPass) filmicPass.enabled = true;
+      if (tiltShiftPass) tiltShiftPass.enabled = true;
       if (fxaaPass) fxaaPass.enabled = true;
       if (btnCinematic) btnCinematic.classList.add('active');
     } else if (preset === 'balanced') {
@@ -1268,6 +1321,7 @@
         bloomPass.strength = 0.45;
       }
       if (filmicPass) filmicPass.enabled = true;
+      if (tiltShiftPass) tiltShiftPass.enabled = false;
       if (fxaaPass) fxaaPass.enabled = true;
       if (btnCinematic) btnCinematic.classList.add('active');
     } else if (preset === 'performance') {

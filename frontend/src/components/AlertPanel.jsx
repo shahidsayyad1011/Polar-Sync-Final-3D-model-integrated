@@ -1,8 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { STATION_ROOMS } from '../data/stationRooms';
 import { analyzeAlert } from '../services/api';
 
-function AiModal({ alert, analysis, onClose }) {
+// Renders the AI popup directly on <body> so it always appears above every other popup
+function AiModal(props) {
+  return createPortal(<AiModalContent {...props} />, document.body);
+}
+
+function AiModalContent({ alert, analysis, onClose }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
